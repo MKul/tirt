@@ -52,7 +52,7 @@ public abstract class Solver {
 		return (float) Math.sqrt(dx*dx+dy*dy);
 	}
 	
-	public final HashMap<User,ArrayList<Bts>> getDistanceMatrix(){
+	public final HashMap<User,HashMap<Bts,Integer>> getDistanceMap(){
 		//TODO: understandable, I suppose, let's someone make it :)
 		return null;
 	}
