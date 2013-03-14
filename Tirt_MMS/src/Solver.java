@@ -52,8 +52,8 @@ public abstract class Solver {
 		return (float) Math.sqrt(dx*dx+dy*dy);
 	}
 	
-	public final float[][] getDistanceMatrix(){
-		//TODO: metoda powinna zrobiæ macierz gdzie na skrzy¿owaniach s¹ albo odleg³oœci jak u¿ytkownik jest w zasiêgu albo -1 kiedy jest poza zasiêgiem
+	public final HashMap<User,ArrayList<Bts>> getDistanceMatrix(){
+		//TODO: understandable, I suppose, let's someone make it :)
 		return null;
 	}
 	
