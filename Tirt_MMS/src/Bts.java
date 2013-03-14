@@ -1,5 +1,10 @@
 
-//author: Marcin Kulisiewicz
+/**
+ * 
+ * @author Marcin Kulisiewicz
+ *
+ */
+
 
 public class Bts {
 	
