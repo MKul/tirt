@@ -1,4 +1,6 @@
 
+//author: Marcin Kulisiewicz
+
 public class Bts {
 	
 	private int x;
