@@ -5,30 +5,45 @@
  *
  */
 
-public class User {
+public class User implements Comparable<User>{
 	
-	private int x;
-	private int y;
+	private final String id;
+	private float x;
+	private float y;
 	
-	public User(int posX, int posY){
+	public User(String id, float posX, float posY){
+		this.id=id;
 		x=posX;
 		y=posY;
 	}
 	
-	public void setX(int newX){
+	public void setX(float newX){
 		x=newX;
 	}
 	
-	public void setY(int newY){
+	public void setY(float newY){
 		y=newY;
 	}
 	
-	public int getX(){
+	public float getX(){
 		return x;
 	}
 		
-	public int getY(){
+	public float getY(){
 		return y;
+	}
+	
+	public String getId(){
+		return id;
+	}
+	
+	public String toString(){
+		return "[USER id:"+id+",x:"+x+",y:"+y+"]";
+	}
+
+	@Override
+	public int compareTo(User o) {
+		return this.id.compareTo(o.id);
 	}
 	
 	

@@ -6,52 +6,69 @@
  */
 
 
-public class Bts {
+public class Bts implements Comparable<Bts>{
 	
-	private int x;
-	private int y;
-	private int range;
-	private int performence;
+	private final String id;
+	private float x;
+	private float y;
+	private float range;
+	private float performence;
 	
-	public Bts(int posX, int posY){
+	public Bts(String id, float posX, float posY){
+		this.id=id;
 		x=posX;
 		y=posY;
 	}
 	
-	public Bts(int posX, int posY, int range){
-		x=posX;
-		y=posY;
-		this.range=range;
-	}
-	
-	public Bts(int posX, int posY, int range, int perf){
+	public Bts(String id, float posX, float posY, float range){
+		this.id=id;
 		x=posX;
 		y=posY;
 		this.range=range;
-		perf=performence;
 	}
 	
-	public void setRange(int r){
+	public Bts(String id, float posX, float posY, float range, float perf){
+		this.id=id;
+		x=posX;
+		y=posY;
+		this.range=range;
+		performence=perf;
+	}
+	
+	public void setRange(float r){
 		range=r;
 	}
 	
-	public void setPerformance(int p){
+	public void setPerformance(float p){
 		performence=p;
 	}
 	
-	public int getX(){
+	public float getX(){
 		return x;
 	}
 	
-	public int getY(){
+	public float getY(){
 		return y;
 	}
 	
-	public int getRange(){
+	public float getRange(){
 		return range;
 	}
 	
-	public int getPerformance(){
+	public float getPerformance(){
 		return performence;
+	}
+	
+	public String getId(){
+		return id;
+	}
+	
+	public String toString(){
+		return "[BTS Id:"+id+",x:"+x+",y:"+y+",r:"+range+",p:"+performence+"]";
+	}
+
+	@Override
+	public int compareTo(Bts o) {
+		return this.id.compareTo(o.id);
 	}
 }
