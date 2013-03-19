@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 
 
 /**
@@ -14,17 +15,24 @@ public abstract class Solver {
 	
 	protected ArrayList<User> users;
 	protected ArrayList<Bts> btses;
+	private Pharser pharser;
 	
 	public Solver(){
 		//TODO: anything?
 	}
 	
-	public final void readUsers(String path){
-		//TODO: use Parser, path from GUI
+	public final void readUsers(){
+		users=pharser.readUsers();
+		//System.out.println("users:"+users.toString());
 	}
 	
-	public final void readBtses(String path){
-		//TODO: use Parser, path from GUI
+	public final void readBtses(){
+		btses=pharser.readBtses();
+		//System.out.println("btses:"+btses.toString());
+	}
+	
+	public final void setPharser(Pharser p){
+		pharser=p;
 	}
 	
 	public final ArrayList<User> getUsers(){
@@ -47,17 +55,30 @@ public abstract class Solver {
 	}
 	
 	public final float getDistance(User u, Bts b){
-		int dx=u.getX()-b.getX();
-		int dy=u.getY()-b.getY();
+		float dx=u.getX()-b.getX();
+		float dy=u.getY()-b.getY();
 		return (float) Math.sqrt(dx*dx+dy*dy);
 	}
 	
-	public final HashMap<User,HashMap<Bts,Integer>> getDistanceMap(){
-		//TODO: understandable, I suppose, let's someone make it :)
-		return null;
+	public final TreeMap<User,TreeMap<Bts,Float>> getDistanceMap(){
+		TreeMap<User,TreeMap<Bts,Float>> ans=new TreeMap<User,TreeMap<Bts,Float>>();
+		for(int i=0;i<users.size();i++){
+			TreeMap<Bts,Float> temp=new TreeMap<Bts,Float>();
+			for(int j=0;j<btses.size();j++){
+				Bts bts=btses.get(j);
+				float dist=getDistance(users.get(i), bts);
+				if(dist<=bts.getRange()){
+					temp.put(bts, dist);
+				}
+			}
+			ans.put(users.get(i), temp);
+			//System.out.println(users.get(i).toString()+"->"+temp.toString());
+		}
+		//System.out.println(ans.toString());
+		return ans;
 	}
 	
-	public abstract HashMap<User,Bts> getSolve();
+	public abstract TreeMap<User,Bts> getSolve();
 	
 	
 }
