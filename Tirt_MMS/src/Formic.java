@@ -125,7 +125,7 @@ public class Formic extends Solver{
 			}
 			computePheromone(paths);
 		}
-		if(lastPath!=null) printPath(lastPath);
+//		if(lastPath!=null) printPath(lastPath);
 	}//---------------------------------------------------------------------
 	
 	private void printPerformences(TreeMap<Bts,Float> perf){
