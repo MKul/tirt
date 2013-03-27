@@ -11,7 +11,7 @@ public class Init {
 		formic.setPharser(phaser);
 		formic.readBtses();
 		formic.readUsers();
-		formic.compute(4,10,5);
+		formic.compute(2,40,5);
 		System.out.println("Time: "+(System.currentTimeMillis()-time)+"ms");
 	}
 
