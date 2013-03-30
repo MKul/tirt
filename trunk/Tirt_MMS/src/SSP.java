@@ -78,7 +78,7 @@ public class SSP extends Solver {
 			TreeMap<User, TreeMap<Bts, Float> > tempMap=maps.pop();
 			for(User u:tempMap.keySet())
 			{
-				TreeMap<User, TreeMap<Bts, Float>> newTempMap=deepClone(tempMap);//(TreeMap<User, TreeMap<Bts, Float>>) tempMap.clone();
+				TreeMap<User, TreeMap<Bts, Float>> newTempMap=deepClone(tempMap);
 				Bts bestBts=selectNearestBTS(u, newTempMap);
 				if(bestBts!=null)
 				{
@@ -88,7 +88,19 @@ public class SSP extends Solver {
 				}
 			}
 		}
-		return paths.pop();
+		// Po wyjsciu z petli posiadam juz pierwsze rozwiazanie, ktore nie przeciaza BTS-ow, ale niekoniecznie optymalne
+		TreeMap<User, Bts> bestPath=paths.pop();
+		float bestDist=totalDistance(bestPath);
+		while(!paths.isEmpty())
+		{
+			TreeMap<User, Bts> tempPath=paths.pop();
+			if(!isOverloaded(tempPath) && totalDistance(tempPath)<bestDist)
+			{
+				bestPath=tempPath;
+				bestDist=totalDistance(tempPath);
+			}
+		}
+		return bestPath;
 	}
 	
 	public TreeMap<User, TreeMap<Bts, Float>> deepClone(TreeMap<User, TreeMap<Bts, Float>> map) // Potrzebne ze wzgledu na to, ze zwykly clone() dzialal nie tak jak oczekiwalem, gdy byla zagniezdzona TreeMapa
