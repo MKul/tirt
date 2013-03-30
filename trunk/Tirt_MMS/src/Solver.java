@@ -55,9 +55,21 @@ public abstract class Solver {
 	}
 	
 	public final float getDistance(User u, Bts b){
+		if(b==null) return 1000;	// Dopuszczam sytuacjê, ¿e user nie jest w zasiêgu ¿adnego BTS'a, wtedy wskoczy tu null, wiêc zwracam 1000 jako swego rodzaju karê za nieobs³u¿enie usera
 		float dx=u.getX()-b.getX();
 		float dy=u.getY()-b.getY();
 		return (float) Math.sqrt(dx*dx+dy*dy);
+	}
+	
+	public final float totalDistance(TreeMap<User, Bts> assignment)
+	{
+		float dist=0;
+		for(User u:assignment.keySet())
+		{
+			Bts b=assignment.get(u);
+			dist+=getDistance(u, b);
+		}
+		return dist;
 	}
 	
 	public final TreeMap<User,TreeMap<Bts,Float>> getDistanceMap(){
