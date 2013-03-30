@@ -12,6 +12,16 @@ public class Init {
 		formic.readBtses();
 		formic.readUsers();
 		formic.compute(2,40,5);
+		System.out.println("Formic:");
+		System.out.println(formic.getSolve());
+		System.out.println(formic.totalDistance(formic.getSolve()));
+		System.out.println("Time: "+(System.currentTimeMillis()-time)+"ms");
+		
+		time=System.currentTimeMillis();
+		SSP ssp=new SSP();
+		System.out.println("SSP:");
+		System.out.println(ssp.getSolve());
+		System.out.println(ssp.totalDistance(ssp.getSolve()));
 		System.out.println("Time: "+(System.currentTimeMillis()-time)+"ms");
 	}
 
