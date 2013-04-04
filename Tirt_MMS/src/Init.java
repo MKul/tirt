@@ -12,7 +12,7 @@ public class Init {
 		formic.setPharser(phaser);
 		formic.readBtses();
 		formic.readUsers();
-		formic.compute(20,60);
+		formic.compute(2,10);
 		
 		System.out.println("Formic:");
 //		System.out.println(formic.getSolve());
