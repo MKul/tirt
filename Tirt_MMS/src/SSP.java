@@ -90,14 +90,14 @@ public class SSP extends Solver {
 		}
 		// Po wyjsciu z petli posiadam juz pierwsze rozwiazanie, ktore nie przeciaza BTS-ow, ale niekoniecznie optymalne
 		TreeMap<User, Bts> bestPath=paths.pop();
-		float bestDist=totalDistance(bestPath);
+		float bestDist=getTotalDistance(bestPath);
 		while(!paths.isEmpty())
 		{
 			TreeMap<User, Bts> tempPath=paths.pop();
-			if(!isOverloaded(tempPath) && totalDistance(tempPath)<bestDist)
+			if(!isOverloaded(tempPath) && getTotalDistance(tempPath)<bestDist)
 			{
 				bestPath=tempPath;
-				bestDist=totalDistance(tempPath);
+				bestDist=getTotalDistance(tempPath);
 			}
 		}
 		return bestPath;

@@ -11,8 +11,8 @@ public class Pharser {
 	private String usersPath, btsesPath;
 	
 	public Pharser(){
-		btsesPath="C:\\Users\\MKul\\workspace_eclipse\\Tirt_MMS\\btses2.txt";
-		usersPath="C:\\Users\\MKul\\workspace_eclipse\\Tirt_MMS\\users2.txt";
+		btsesPath="C:\\Users\\MKul\\workspace_eclipse\\Tirt_MMS\\btses30.txt";
+		usersPath="C:\\Users\\MKul\\workspace_eclipse\\Tirt_MMS\\users30.txt";
 	}
 	
 	public ArrayList<Bts> readBtses(){
