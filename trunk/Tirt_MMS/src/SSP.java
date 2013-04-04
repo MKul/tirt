@@ -3,6 +3,12 @@ import java.util.LinkedList;
 import java.util.TreeMap;
 
 
+/**
+ * 
+ * @author Marcin Koralewski
+ *
+ */
+
 public class SSP extends Solver {
 	
 	private Pharser parser;

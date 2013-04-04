@@ -99,9 +99,8 @@ public class Formic extends Solver{
 							probabilities[j]/=critSum;
 						}
 					}else{
-						System.out.println("No Possibility");
+						System.out.println("Out of Range");
 						isOutOfRange=true;
-//						break;
 					}
 					
 					if(!isOutOfRange){
