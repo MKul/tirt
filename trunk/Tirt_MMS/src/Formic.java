@@ -13,12 +13,13 @@ import java.util.TreeMap;
 
 public class Formic extends Solver{
 	
+	private int userN;
 	private TreeMap<User,Bts> lastPath;
 	private TreeMap<User,TreeMap<Bts,Float>> distanceMap;
 	private TreeMap<User,TreeMap<Bts,TreeMap<Bts,Float>>> pheromoneMap;
 	private User queen;
-	private Bts nest;
-	private final float ALPHA=1f, BETA=1f, PHEROMONE_DECAY=5f, PHER_STAT=100f;	
+	private Bts nest, unallocated;
+	private final float ALPHA=1f, BETA=1f, PHEROMONE_DECAY=5f, PHER_STAT=1000f;	
 												//wspó³czynniki: ALPHA- wp³yw feromonów, 
 												//BETA- wp³yw funkcji kryterium,
 												//PHEROMONE_DECAY- zanikanie feromonów
@@ -27,15 +28,15 @@ public class Formic extends Solver{
 	public Formic(){
 		queen=new User(" Queen",0,0);
 		nest=new Bts("Nest",0,0,0,0);
+		unallocated=new Bts("~UNALLOCATED",0,0,0,Float.MAX_VALUE);
 	}
 	
 	/**
 	 * 
 	 * @param antN
 	 * @param iterationN
-	 * @param userN
 	 * 
-	 * Metoda zawieraj¹ca przebieg algorytmu pobiera w parametrach informacjê o iloœci u¿ytkowników (userN) oraz
+	 * Metoda zawieraj¹ca przebieg algorytmu pobiera w parametrach informacjê o 
 	 * iloœci iteracji jak¹ chcemy wykonaæ (iterationN). Parametr antN równie¿ mówi o iloœci iteracji jednak w
 	 * trochê inny sposób. Algorytm mrówkowy ma kilka wersji. Zaimplementowana zosta³a wersja, gdzie mrówki
 	 * przechodz¹c po grafie w kolejnych iteracjach nie zostawiaj¹ feromonów od razu. Feromony na œcie¿kach grafu
@@ -45,17 +46,22 @@ public class Formic extends Solver{
 	 *  
 	 */
 	//---------------------  method contain algorithm  ---------------------
-	public void compute(int antN, int iterationN, int userN){
+	public void compute(int antN, int iterationN){
 		prepareData();
+//		System.out.println("START: antN-"+antN+" iterN-"+iterationN+" userN-"+userN);
 		Bts currBts;
 		User currUser;
 		TreeMap<User,Bts> currPath;
 		TreeMap<Bts,Float> performances;
 		ArrayList<TreeMap<User,Bts>> paths;
+		boolean isOutOfRange=false;
 		for(int i=0;i<iterationN;i++){
+//			System.out.println();
+//			System.out.println(" i:"+i);
 			boolean isBreaked=false;
 			paths=new ArrayList<TreeMap<User,Bts>>();
 			for(int iAnt=0;iAnt<antN;iAnt++){
+//				System.out.print(" a:"+iAnt);
 				performances = getPerformences();
 				currPath=new TreeMap<User, Bts>();
 				currBts=nest;
@@ -93,22 +99,30 @@ public class Formic extends Solver{
 							probabilities[j]/=critSum;
 						}
 					}else{
-						//no possibilities, so go back to next iteration(ant)
-						break;
+						System.out.println("No Possibility");
+						isOutOfRange=true;
+//						break;
 					}
 					
-					int choosed=randomWithProbability(probabilities);
-					if(choosed==-1){
-						isBreaked=true;
-						break;
-					}else{
-						currBts=btsList[choosed];
-						//decrease performance of current bts 
-						if(performances.get(currBts)<=0){
+					if(!isOutOfRange){
+						int choosed=randomWithProbability(probabilities);
+						if(choosed==-1){
 							isBreaked=true;
 							break;
+						}else{
+							currBts=btsList[choosed];
+							//decrease performance of current bts 
+							if(performances.get(currBts)<=0){
+								isBreaked=true;
+								break;
+							}
+							performances.put(currBts,performances.get(currBts)-1);
+							currUser=u;
+							currPath.put(currUser, currBts);
 						}
-						performances.put(currBts,performances.get(currBts)-1);
+					}else{
+						isOutOfRange=false;
+						currBts=unallocated;
 						currUser=u;
 						currPath.put(currUser, currBts);
 					}
@@ -135,9 +149,14 @@ public class Formic extends Solver{
 		System.out.println();
 	}
 	
-	private void printPath(TreeMap<User,Bts> path){
+	public void printPath(TreeMap<User,Bts> path){
 		for(User u:path.keySet()){
-			System.out.print(u.getId()+"->"+path.get(u).getId()+"  ");
+			if(path.get(u)== null){
+				System.out.print(u.getId()+"->~UNALLOCATED  ");
+			}else{
+				if(!u.getId().equals(" Queen"))
+				System.out.print(u.getId()+"->"+path.get(u).getId()+"  ");
+			}
 		}
 		System.out.println();
 	}
@@ -158,7 +177,7 @@ public class Formic extends Solver{
 		return performences;
 	}
 	
-	private void computePheromone(ArrayList<TreeMap<User,Bts>> paths){	//TODO:
+	private void computePheromone(ArrayList<TreeMap<User,Bts>> paths){
 		
 		//parowanie starych
 		for(User u:pheromoneMap.keySet()){
@@ -225,11 +244,25 @@ public class Formic extends Solver{
 	}
 	
 	private void prepareData(){
+		//add to unallocated bts
+		btses.add(unallocated);
+		
 		//load possible ant path
 		distanceMap=getDistanceMap();
 		
+		//TODO: set max distance to all connection with unallocated bts
+		setMaxDistToUnallocated();
+		
 		//create pheromoneMap and fill by default 1
 		createPheromoneMap();
+		
+		userN=users.size();
+	}
+	
+	private void setMaxDistToUnallocated(){
+		for(User u:distanceMap.keySet()){
+			distanceMap.get(u).put(unallocated, Float.MAX_VALUE);
+		}
 	}
 	
 	private void createPheromoneMap() {
@@ -272,6 +305,7 @@ public class Formic extends Solver{
 	
 	@Override
 	public TreeMap<User, Bts> getSolve() {
+//		printPath(lastPath);
 		return lastPath;
 	}
 
