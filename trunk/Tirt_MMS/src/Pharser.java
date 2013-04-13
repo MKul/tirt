@@ -10,11 +10,11 @@ public class Pharser {
 
 	private String usersPath, btsesPath;
 	
-	public Pharser(){
-		btsesPath="C:\\Users\\MKul\\workspace_eclipse\\Tirt_MMS\\btses2.txt";
-		usersPath="C:\\Users\\MKul\\workspace_eclipse\\Tirt_MMS\\users2.txt";
+	public Pharser(String btses, String users) {
+		btsesPath=btses;
+		usersPath=users;
 	}
-	
+
 	public ArrayList<Bts> readBtses(){
 		ArrayList<Bts> btses=new ArrayList<Bts>();
 		try {

@@ -160,7 +160,7 @@ public class Formic extends Solver{
 		System.out.println();
 	}
 	
-	private TreeMap<User,Bts> clonePath(TreeMap<User,Bts> path){
+	public TreeMap<User,Bts> clonePath(TreeMap<User,Bts> path){
 		TreeMap<User,Bts> clone=new TreeMap<User,Bts>();
 		for(User u:path.keySet()){
 			clone.put(u, path.get(u));
