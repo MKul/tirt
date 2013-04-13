@@ -14,8 +14,8 @@ public class SSP extends Solver {
 	private Pharser parser;
 
 
-	public SSP() {
-		parser=new Pharser();
+	public SSP(String btses, String users) {
+		parser=new Pharser(btses, users);
 		setPharser(parser);
 		readBtses();
 		readUsers();
