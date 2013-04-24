@@ -42,8 +42,10 @@ class Panel extends JPanel implements ActionListener {
 	Pharser ph = null;
 	Panel panel;
 	int number = 0, hight = 0;
+	float penaltyCount = 0;
 	Formic formic;
 	SSP ssp;
+	Hungarian hun;
 	TreeMap<User, Bts> solve;
 
 	public Panel() {
@@ -86,7 +88,7 @@ class Panel extends JPanel implements ActionListener {
 		penaltyFunction = new JLabel("Penalty Function:");
 		penaltyFunction.setBounds(620, 10, 110, 18);
 
-		penalty = new JTextField("1.0");
+		penalty = new JTextField("100000.0");
 		penalty.setBounds(620, 35, 110, 20);
 
 		add(bts);
@@ -109,35 +111,49 @@ class Panel extends JPanel implements ActionListener {
 
 	long time;
 
+	/**
+	 * Wybiera akcjê w zale¿noœci od wciœniêtego buttona.
+	 * 
+	 * Sprawdza, który algorytm jest wybrany i odpala odpowiedni¹ metodê.
+	 * 
+	 * */
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		if (algSSP.isSelected()) {
-			alg = 1;
-		} else if (algFormic.isSelected()) {
-			alg = 2;
-		}
-
 		Object source = arg0.getSource();
 		if (source == read)
 			read();
-		else if (source == count)
+		else if (source == count) {
+			if (algSSP.isSelected()) {
+				alg = 1;
+			} else if (algFormic.isSelected()) {
+				alg = 2;
+			} else if (algHungarian.isSelected()) {
+				alg = 3;
+			}
+
+			penaltyCount = Float.parseFloat(penalty.getText());
+
 			time = System.currentTimeMillis();
-		switch (alg) {
-		case 1:
-			SSPAlg();
-			break;
-		case 2:
-			formicAlg();
-			break;
-		case 3:
-			break;
+			switch (alg) {
+			case 1:
+				SSPAlg();
+				break;
+			case 2:
+				formicAlg();
+				break;
+			case 3:
+				hungarianAlg();
+				break;
+			}
 		}
+
 	}
 
 	String btses = " ";
 	String users = " ";
 
 	public void read() {
+
 		btses = bts.getText();
 		users = user.getText();
 
@@ -146,8 +162,14 @@ class Panel extends JPanel implements ActionListener {
 		readUsers = ph.readUsers();
 		number = 1;
 		hight = this.getHeight();
-		System.out.println("read");
+		// System.out.println("read");
 		repaint();
+	}
+
+	public void hungarianAlg() {
+		hun = new Hungarian(btses, users);
+		System.out.println("Hungarian:");
+		hun.solve();
 	}
 
 	public void formicAlg() {
@@ -190,15 +212,25 @@ class Panel extends JPanel implements ActionListener {
 
 		switch (number) {
 		case 1:
+			// Rysuje rozmieszczenie przed uruchomieniem algorytmu
+			// Na ¿ó³to zasiêg stacji, czarny kwadrat to stacja, czerwony
+			// kwadrat u¿ytkownik
+			
+			//Legenda
+			g.setColor(Color.black);
+			g.drawString("Key :", 10, 110);
+			g.fillRect(15, 120, 10, 10);
+			g.drawString(" - BTS", 30, 129);
+			g.setColor(Color.red);
+			g.fillRect(15, 140, 10, 10);
+			g.drawString(" - USER", 30, 149);
+			
 			for (Bts i : readBtses) {
 				g.setColor(Color.yellow);
-				g.fillArc((int) (450 + i.getX() - 5 * i.getRange()),
+				g.drawArc((int) (450 + i.getX() - 5 * i.getRange()),
 						(int) (395 + i.getY() - i.getRange() * 5),
 						(int) i.getRange() * 10, (int) i.getRange() * 10, 0,
 						360);
-			}
-
-			for (Bts i : readBtses) {
 				g.setColor(Color.black);
 				g.fillRect((int) (450 + i.getX() - 0.5 * width),
 						(int) (395 + i.getY() - 0.5 * high), width, high);
@@ -211,6 +243,19 @@ class Panel extends JPanel implements ActionListener {
 			}
 			break;
 		case 2:
+			
+			//Legenda
+			g.setColor(Color.black);
+			g.drawString("Key :", 10, 110);
+			g.setColor(Color.blue);
+			g.fillArc(15, 120, 10, 10, 0, 360);
+			g.drawString(" - COLORED BTS", 30, 129);
+			g.fillRect(15, 140, 10, 10);
+			g.drawString(" - COLORED USER ASSIGNED TO BTS", 30, 149);
+			g.setColor(Color.white);
+			g.fillRect(15, 160, 10, 10);
+			g.drawString(" - UNALLOCATED USER", 30, 169);
+			
 			List<User> t[] = new List[readBtses.size()];
 			for (int i = 0; i < t.length; i++)
 				t[i] = new LinkedList<User>();
@@ -218,9 +263,11 @@ class Panel extends JPanel implements ActionListener {
 			User temp[][] = new User[readBtses.size()][readUsers.size()];
 			ArrayList<User> tempU = new ArrayList<>();
 			for (User u : solve.keySet()) {
-				if (solve.get(u) == null)
+
+				if (solve.get(u) == null
+						|| solve.get(u).getId().equals("~UNALLOCATED")) {
 					tempU.add(u);
-				else
+				} else
 					for (Bts b : readBtses)
 						// System.out.println(readBtses.size());
 						if (solve.get(u).getId().equals(b.getId()))
@@ -228,31 +275,51 @@ class Panel extends JPanel implements ActionListener {
 									.add(u);
 			}
 
-			Color col[] = { Color.black, Color.blue, Color.cyan,
-					Color.darkGray, Color.gray, Color.green, Color.magenta,
+			Color col[] = { Color.green, Color.magenta, Color.black,
+					Color.blue, Color.cyan, Color.darkGray, Color.gray,
 					Color.orange, Color.pink, Color.red, Color.yellow,
 					Color.getHSBColor(106, 164, 232),
 					Color.getHSBColor(75, 214, 43),
 					Color.getHSBColor(106, 14, 62) };
 			int colNr = 0;
 
+			// na bia³o rysuje userów, którzy nie s¹ przyporz¹dkowani do ¿adnego
+			// btsa
 			for (User r : tempU) {
-				g.setColor(col[colNr]);
+				// g.setColor(col[colNr]);
+				g.setColor(Color.white);
 				g.fillRect((int) (450 + r.getX() - 0.5 * width),
 						(int) (395 + r.getY() - 0.5 * high), width, high);
-				colNr++;
+				g.drawString(r.getId(), (int) (450 + r.getX() - 0.5 * width),
+						(int) (390 + r.getY() - 0.5 * high));
+				// colNr++;
 			}
 
 			int bt = 0;
 			for (List<User> j : t) {
 				g.setColor(col[colNr]);
+				g.drawArc((int) (450 + readBtses.get(bt).getX() - 5 * readBtses
+						.get(bt).getRange()), (int) (395 + readBtses.get(bt)
+						.getY() - readBtses.get(bt).getRange() * 5),
+						(int) readBtses.get(bt).getRange() * 10,
+						(int) readBtses.get(bt).getRange() * 10, 0, 360);
 				g.fillArc((int) (450 + readBtses.get(bt).getX() - 0.5 * width),
 						(int) (395 + readBtses.get(bt).getY() - 0.5 * high),
 						width, high, 0, 360);
+				g.drawString(
+						readBtses.get(bt).getId(),
+						(int) (450 + readBtses.get(bt).getX() - 5 * readBtses
+								.get(bt).getRange()),
+						(int) (395 + readBtses.get(bt).getY() - readBtses.get(
+								bt).getRange() * 5));
 				bt++;
+				// kwadratem rysowani userzy
 				for (User u : j) {
 					g.fillRect((int) (450 + u.getX() - 0.5 * width),
 							(int) (395 + u.getY() - 0.5 * high), width, high);
+					g.drawString(u.getId(),
+							(int) (450 + u.getX() - 0.5 * width),
+							(int) (390 + u.getY() - 0.5 * high));
 				}
 
 				colNr++;

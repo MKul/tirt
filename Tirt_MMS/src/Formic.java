@@ -304,7 +304,6 @@ public class Formic extends Solver{
 	
 	@Override
 	public TreeMap<User, Bts> getSolve() {
-//		printPath(lastPath);
 		return lastPath;
 	}
 

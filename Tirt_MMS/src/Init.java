@@ -6,9 +6,9 @@ public class Init {
 	 */
 	public static void main(String[] args) {
 		GUI gui = new GUI("pierwotnie");
-		long time=System.currentTimeMillis();
+//		long time=System.currentTimeMillis();
 //		Pharser phaser=new Pharser();
-		Formic formic=new Formic();
+//		Formic formic=new Formic();
 //		
 //		formic.setPharser(phaser);
 //		formic.readBtses();
