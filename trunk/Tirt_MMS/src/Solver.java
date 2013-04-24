@@ -16,6 +16,7 @@ public abstract class Solver {
 	protected ArrayList<User> users;
 	protected ArrayList<Bts> btses;
 	private Pharser pharser;
+	private float penalty = 0;
 	
 	public Solver(){
 		//TODO: anything?
@@ -33,6 +34,10 @@ public abstract class Solver {
 	
 	public final void setPharser(Pharser p){
 		pharser=p;
+	}
+	
+	public final void setPenalty(float penalty){
+		this.penalty = penalty;
 	}
 	
 	public final ArrayList<User> getUsers(){
@@ -55,7 +60,7 @@ public abstract class Solver {
 	}
 	
 	public final float getDistance(User u, Bts b){
-		if(b==null) return 100000;	// Dopuszczam sytuacjê, ¿e user nie jest w zasiêgu ¿adnego BTS'a, wtedy wskoczy tu null, wiêc zwracam 1000 jako swego rodzaju karê za nieobs³u¿enie usera
+		if(b==null) return penalty;	// Dopuszczam sytuacjê, ¿e user nie jest w zasiêgu ¿adnego BTS'a, wtedy wskoczy tu null, wiêc zwracam 1000 jako swego rodzaju karê za nieobs³u¿enie usera
 		float dx=u.getX()-b.getX();
 		float dy=u.getY()-b.getY();
 		return (float) Math.sqrt(dx*dx+dy*dy);
