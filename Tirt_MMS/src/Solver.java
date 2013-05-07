@@ -60,7 +60,11 @@ public abstract class Solver {
 	}
 	
 	public final float getDistance(User u, Bts b){
-		if(b==null) return penalty;	// Dopuszczam sytuacjê, ¿e user nie jest w zasiêgu ¿adnego BTS'a, wtedy wskoczy tu null, wiêc zwracam 1000 jako swego rodzaju karê za nieobs³u¿enie usera
+		if(b==null || b.getId().equals("~UNALLOCATED")){
+			System.out.println(penalty);
+		return penalty;	// Dopuszczam sytuacjê, ¿e user nie jest w zasiêgu ¿adnego BTS'a, wtedy wskoczy tu null, wiêc zwracam 1000 jako swego rodzaju karê za nieobs³u¿enie usera
+		
+		}
 		float dx=u.getX()-b.getX();
 		float dy=u.getY()-b.getY();
 		return (float) Math.sqrt(dx*dx+dy*dy);
@@ -79,6 +83,18 @@ public abstract class Solver {
 		}else{
 			return -1;
 		}
+	}
+	
+	public final void printPath(TreeMap<User,Bts> path){
+		for(User u:path.keySet()){
+			if(path.get(u)== null){
+				System.out.print(u.getId()+"->~UNALLOCATED  ");
+			}else{
+				if(!u.getId().equals(" Queen"))
+				System.out.print(u.getId()+"->"+path.get(u).getId()+"  ");
+			}
+		}
+		System.out.println();
 	}
 	
 	public final TreeMap<User,TreeMap<Bts,Float>> getDistanceMap(){
