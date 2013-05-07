@@ -148,17 +148,17 @@ public class Formic extends Solver{
 		System.out.println();
 	}
 	
-	public void printPath(TreeMap<User,Bts> path){
-		for(User u:path.keySet()){
-			if(path.get(u)== null){
-				System.out.print(u.getId()+"->~UNALLOCATED  ");
-			}else{
-				if(!u.getId().equals(" Queen"))
-				System.out.print(u.getId()+"->"+path.get(u).getId()+"  ");
-			}
-		}
-		System.out.println();
-	}
+//	public void printPath(TreeMap<User,Bts> path){
+//		for(User u:path.keySet()){
+//			if(path.get(u)== null){
+//				System.out.print(u.getId()+"->~UNALLOCATED  ");
+//			}else{
+//				if(!u.getId().equals(" Queen"))
+//				System.out.print(u.getId()+"->"+path.get(u).getId()+"  ");
+//			}
+//		}
+//		System.out.println();
+//	}
 	
 	public TreeMap<User,Bts> clonePath(TreeMap<User,Bts> path){
 		TreeMap<User,Bts> clone=new TreeMap<User,Bts>();
