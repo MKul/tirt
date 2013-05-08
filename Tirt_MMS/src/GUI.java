@@ -59,9 +59,9 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 		this.addMouseListener(this);
 
 		bts = new JTextField(
-				"C:\\Users\\oem\\workspace_juno\\Tirt_MMS\\btses1.txt");
+				"C:\\Users\\oem\\workspace_juno\\Tirt_MMS\\btses6.txt");
 		user = new JTextField(
-				"C:\\Users\\oem\\workspace_juno\\Tirt_MMS\\users2.txt");
+				"C:\\Users\\oem\\workspace_juno\\Tirt_MMS\\users6.txt");
 
 		bts.setBounds(10, 10, 290, 30);
 		user.setBounds(10, 60, 290, 30);
@@ -175,33 +175,34 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 	public void hungarianAlg() {
 		hun = new Hungarian(btses, users);
 		System.out.println("Hungarian:");
+		hun.compute();
 		//hun.solve();
-		float[][] matrix = new float[5][5];
-		matrix[0][0]=20; matrix[0][1]=40; matrix[0][2]=35; matrix[0][3]=25; matrix[0][4]=62;
-		matrix[1][0]=53; matrix[1][1]=14 ; matrix[1][2]=83 ; matrix[1][3]=14 ; matrix[1][4]=13;
-		matrix[2][0]=14 ; matrix[2][1]=6 ; matrix[2][2]=24 ; matrix[2][3]=14 ; matrix[2][4]=7;
-		matrix[3][0]=26; matrix[3][1]=64; matrix[3][2]=25; matrix[3][3]=54; matrix[3][4]=63;
-		matrix[4][0]=53; matrix[4][1]=15; matrix[4][2]=96; matrix[4][3]=43; matrix[4][4]=23;
-		
-
-		for(int i=0; i<matrix.length ; i++){
-			for(int j=0; j<matrix[i].length; j++){
-				System.out.print(matrix[i][j]+" ");
-			}
-		System.out.println();
-		}
-		System.out.println();
-		int t =0, d=0;
-		int[][] temp = hun.computeAssignments(matrix);
-		for(int i=0; i<temp.length ; i++){
-			for(int j=0; j<temp[i].length; j+=2){
-				t = temp[i][j];
-				d = temp[i][j+1];
-				System.out.print(d+" "+t);
-			}
-			System.out.print(matrix[t][d]);
-		System.out.println();
-		}
+//		float[][] matrix = new float[5][5];
+//		matrix[0][0]=20; matrix[0][1]=40; matrix[0][2]=35; matrix[0][3]=25; matrix[0][4]=62;
+//		matrix[1][0]=53; matrix[1][1]=14 ; matrix[1][2]=83 ; matrix[1][3]=14 ; matrix[1][4]=13;
+//		matrix[2][0]=14 ; matrix[2][1]=6 ; matrix[2][2]=24 ; matrix[2][3]=14 ; matrix[2][4]=7;
+//		matrix[3][0]=26; matrix[3][1]=64; matrix[3][2]=25; matrix[3][3]=54; matrix[3][4]=63;
+//		matrix[4][0]=53; matrix[4][1]=15; matrix[4][2]=96; matrix[4][3]=43; matrix[4][4]=23;
+//		
+//
+//		for(int i=0; i<matrix.length ; i++){
+//			for(int j=0; j<matrix[i].length; j++){
+//				System.out.print(matrix[i][j]+" ");
+//			}
+//		System.out.println();
+//		}
+//		System.out.println();
+//		int t =0, d=0;
+//		int[][] temp = hun.computeAssignments(matrix);
+//		for(int i=0; i<temp.length ; i++){
+//			for(int j=0; j<temp[i].length; j+=2){
+//				t = temp[i][j];
+//				d = temp[i][j+1];
+//				System.out.print(d+" "+t);
+//			}
+//			System.out.print(matrix[t][d]);
+//		System.out.println();
+//		}
 	}
 
 	public void formicAlg() {
