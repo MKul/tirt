@@ -61,7 +61,7 @@ public abstract class Solver {
 	
 	public final float getDistance(User u, Bts b){
 		if(b==null || b.getId().equals("~UNALLOCATED")){
-			System.out.println(penalty);
+			//System.out.println(penalty);
 		return penalty;	// Dopuszczam sytuacjê, ¿e user nie jest w zasiêgu ¿adnego BTS'a, wtedy wskoczy tu null, wiêc zwracam 1000 jako swego rodzaju karê za nieobs³u¿enie usera
 		
 		}

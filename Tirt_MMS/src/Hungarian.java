@@ -3,18 +3,19 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * 
  * @author Sonia Kot
  * 
- *         TODO: To powstanie niebawem implementacja algorytmu wêgierskiego
  * 
  */
 public class Hungarian extends Pharser {
 	ArrayList<Bts> btsList = new ArrayList<Bts>();
 	ArrayList<User> userList = new ArrayList<User>();
 	ArrayList<MatrixPoint> matrixPoint = new ArrayList<MatrixPoint>();
+	TreeMap<User, Bts> path = new TreeMap<>();
 	int userSize = 0, btsSize = 0;
 
 	public Hungarian(String btses, String users) {
@@ -29,43 +30,401 @@ public class Hungarian extends Pharser {
 		int[][] matrix = null;
 		int[][] matrix2 = null;
 		int[][] exitMatrix = null;
-		
-		int tryb = 0;
-		// btsSize = 5;
-		// userSize = 4;
+
 		if (btsSize > userSize) {
-			tryb = 1;
 			matrix = new int[btsSize][btsSize];
 			matrix2 = new int[btsSize][btsSize];
 			exitMatrix = new int[btsSize][btsSize];
-			
+
 			// zapelniamy macierz wartoœci¹ -1 - wtedy jesli zostan¹ jakieœ
 			// wart. to bêdziemy mogli je wszystkie zamieniæ na najwiêksz¹ wart.
 			// macierzy
 			for (int i = 0; i < btsSize; i++)
 				for (int j = 0; j < btsSize; j++)
 					matrix[i][j] = -1;
-		} else {
-			tryb = 2;
+
+			int max = 0;
+			// zape³niami macierz odlegloœciami btsów od userów
+			for (int i = 0; i < btsSize; i++)
+				for (int j = 0; j < userSize; j++) {
+					int distance = (int) countDistance(btsList.get(i),
+							userList.get(j));
+					matrix[i][j] = distance;
+					if (distance > max)
+						max = distance;
+				}
+
+			// zapelniamy reszte macierzy maxem -> mamy macierz kwadratow¹
+			for (int i = 0; i < btsSize; i++)
+				for (int j = 0; j < btsSize; j++)
+					if (matrix[i][j] == -1)
+						matrix[i][j] = max;
+
+			exitMatrix = copy(matrix, new int[btsSize][btsSize]);
+
+			// pierwszy krok
+			matrix = subtractMinFromRow(matrix);
+			// drugi krok
+			matrix = subtractMinFromColumn(matrix);
+
+			int[][] m2 = new int[matrix.length][matrix.length];
+			// trzeci krok
+			m2 = copy(matrix, m2);
+			m2 = coverTheZeroes(m2);
+
+			// System.out.println(wywolania);
+
+			matrix2 = copy(matrix, new int[matrix.length][matrix.length]);
+
+			while (wywolania < btsSize) {
+				// krok 4
+				m2 = addToCover(matrix2, m2);
+
+				// krok 5
+				m2 = subtractMin(m2);
+				matrix2 = copy(m2, new int[matrix.length][matrix.length]);
+
+				// krok 3
+				m2 = coverTheZeroes(m2);
+			}
+
+			// krok ostatni
+			LinkedList<Integer> column = new LinkedList<>();
+			// przechodzimy po matrix2, a dok³adnie dla ka¿dej kolumny szukamy
+			// zer,
+			// szukamy najmniejsz¹ liczbê zer w ka¿dym wierszu poczynaj¹c od 1
+			// jeœli znajdziemy i jest ono w sprawdzanej kolumnie ustawiamy je
+			// jako zero - "znacz¹ce"
+
+			for (int col = 0; col < btsSize; col++) {
+				boolean wpisano = false;
+				int minZero = 1;
+				while (!wpisano) {
+					for (int row = 0; row < btsSize; row++) {
+						int countZeroInRow = 0;
+						for (int c = 0; c < btsSize; c++) {
+							if (matrix2[row][c] == 0)
+								countZeroInRow++;
+						}
+						if (minZero == countZeroInRow && matrix2[row][col] == 0) {
+							column.add(row);
+							matrix2 = coverRow(matrix2, row);
+							wpisano = true;
+							break;
+						}
+
+					}
+					minZero++;
+				}
+			}
+
+			int col = 0;
+			for (int row : column) {
+				if (col < userSize) {
+					int dis = exitMatrix[row][col];
+					if (dis < btsList.get(row).getRange()) {
+						matrixPoint.add(new MatrixPoint(userList.get(col),
+								btsList.get(row), "located"));
+					}
+
+					else
+						matrixPoint.add(new MatrixPoint(userList.get(col),
+								null, "unlocated"));
+				}
+				col++;
+			}
+
+			for (User b : userList) {
+				boolean wstawiono = false;
+				for (MatrixPoint m : matrixPoint) {
+					if (m.getUser().getId().equals(b.getId())) {
+						path.put(b, m.getBts());
+						wstawiono = true;
+						break;
+					}
+				}
+				if (!wstawiono)
+					path.put(b, null);
+			}
+
+			// for (MatrixPoint m : matrixPoint) {
+			// System.out.println(m.user + " " + m.bts + " " + m.located);
+			// }
+
+		} else if (btsSize < userSize) {
 			matrix = new int[userSize][userSize];
+			matrix2 = new int[userSize][userSize];
+			exitMatrix = new int[userSize][userSize];
+
+			// zapelniamy macierz wartoœci¹ -1 - wtedy jesli zostan¹ jakieœ
+			// wart. to bêdziemy mogli je wszystkie zamieniæ na najwiêksz¹ wart.
+			// macierzy
 			for (int i = 0; i < userSize; i++)
 				for (int j = 0; j < userSize; j++)
 					matrix[i][j] = -1;
-		}
-		/*
-		 * TODO: Use case for square matrix
-		 */
 
-		int max = 0;
-		// zape³niami macierz odlegloœciami btsów od userów
-		for (int i = 0; i < btsSize; i++)
-			for (int j = 0; j < userSize; j++) {
-				int distance = (int) countDistance(btsList.get(i),
-						userList.get(j));
-				matrix[i][j] = distance;
-				if (distance > max)
-					max = distance;
+			int max = 0;
+			// zape³niami macierz odlegloœciami btsów od userów
+			for (int i = 0; i < btsSize; i++)
+				for (int j = 0; j < userSize; j++) {
+					int distance = (int) countDistance(btsList.get(i),
+							userList.get(j));
+					matrix[i][j] = distance;
+					if (distance > max)
+						max = distance;
+				}
+
+			// zapelniamy reszte macierzy maxem -> mamy macierz kwadratow¹
+			for (int i = 0; i < userSize; i++)
+				for (int j = 0; j < userSize; j++)
+					if (matrix[i][j] == -1)
+						matrix[i][j] = max;
+
+			exitMatrix = copy(matrix, new int[userSize][userSize]);
+
+			// pierwszy krok
+			matrix = subtractMinFromRow(matrix);
+			// drugi krok
+			matrix = subtractMinFromColumn(matrix);
+
+			int[][] m2 = new int[matrix.length][matrix.length];
+			// trzeci krok
+			m2 = copy(matrix, m2);
+			m2 = coverTheZeroes(m2);
+
+			matrix2 = copy(matrix, new int[matrix.length][matrix.length]);
+
+			while (wywolania < userSize) {
+				// krok 4
+				m2 = addToCover(matrix2, m2);
+
+				// krok 5
+				m2 = subtractMin(m2);
+				matrix2 = copy(m2, new int[matrix.length][matrix.length]);
+
+				// krok 3
+				m2 = coverTheZeroes(m2);
 			}
+
+			// krok ostatni
+			LinkedList<Integer> column = new LinkedList<>();
+			// przechodzimy po matrix2, a dok³adnie dla ka¿dej kolumny szukamy
+			// zer,
+			// szukamy najmniejsz¹ liczbê zer w ka¿dym wierszu poczynaj¹c od 1
+			// jeœli znajdziemy i jest ono w sprawdzanej kolumnie ustawiamy je
+			// jako zero - "znacz¹ce"
+
+			for (int col = 0; col < userSize; col++) {
+				boolean wpisano = false;
+				int minZero = 1;
+				while (!wpisano) {
+					for (int row = 0; row < userSize; row++) {
+						int countZeroInRow = 0;
+						for (int c = 0; c < userSize; c++) {
+							if (matrix2[row][c] == 0)
+								countZeroInRow++;
+						}
+						if (minZero == countZeroInRow && matrix2[row][col] == 0) {
+							column.add(row);
+							// System.out.println("column: "+col+" row: "+ row);
+							matrix2 = coverRow(matrix2, row);
+							wpisano = true;
+							break;
+						}
+
+					}
+					minZero++;
+				}
+			}
+
+			int col = 0;
+			for (int row : column) {
+				if (row < btsSize) {
+					int dis = exitMatrix[row][col];
+					if (dis < btsList.get(row).getRange()) {
+						matrixPoint.add(new MatrixPoint(userList.get(col),
+								btsList.get(row), "located"));
+					}
+
+					else
+						matrixPoint.add(new MatrixPoint(userList.get(col),
+								null, "unlocated"));
+				}
+				col++;
+			}
+
+			// for (MatrixPoint m : matrixPoint) {
+			// System.out.println("user: "+ m.getUser().getId()+" bts: "+
+			// m.getBts()+m.located);
+			// }
+
+			for (User b : userList) {
+				boolean wstawiono = false;
+				for (MatrixPoint m : matrixPoint) {
+					if (m.getUser().getId().equals(b.getId())) {
+						path.put(b, m.getBts());
+						wstawiono = true;
+						// System.out.println("user: "+b.getId()+" bts: "+
+						// m.getBts());
+						// System.out.println("user: "+path.get(b));
+						break;
+					}
+				}
+				if (!wstawiono)
+					path.put(b, null);
+				// System.out.println("user: "+b.getId()+" bts: null");
+				// System.out.println("user: "+path.get(b));
+			}
+			// for(User u:path.keySet()){
+			// System.out.print(u.getId()+"->"+path.get(u)+"  ");
+			// }
+
+		} else if (btsSize == userSize) {
+			matrix = new int[btsSize][btsSize];
+			matrix2 = new int[btsSize][btsSize];
+			exitMatrix = new int[btsSize][btsSize];
+
+			// zape³niami macierz odlegloœciami btsów od userów
+			for (int i = 0; i < btsSize; i++)
+				for (int j = 0; j < userSize; j++) {
+					int distance = (int) countDistance(btsList.get(i),
+							userList.get(j));
+					matrix[i][j] = distance;
+				}
+
+			exitMatrix = copy(matrix, new int[btsSize][btsSize]);
+
+			// pierwszy krok
+			matrix = subtractMinFromRow(matrix);
+			// drugi krok
+			matrix = subtractMinFromColumn(matrix);
+
+			int[][] m2 = new int[matrix.length][matrix.length];
+			// trzeci krok
+			m2 = copy(matrix, m2);
+			m2 = coverTheZeroes(m2);
+
+			matrix2 = copy(matrix, new int[matrix.length][matrix.length]);
+
+			while (wywolania < btsSize) {
+				// krok 4
+				m2 = addToCover(matrix2, m2);
+
+				// krok 5
+				m2 = subtractMin(m2);
+				matrix2 = copy(m2, new int[matrix.length][matrix.length]);
+
+				// krok 3
+				m2 = coverTheZeroes(m2);
+
+			}
+
+			// krok ostatni
+			LinkedList<Integer> column = new LinkedList<>();
+			// przechodzimy po matrix2, a dok³adnie dla ka¿dej kolumny szukamy
+			// zer,
+			// szukamy najmniejsz¹ liczbê zer w ka¿dym wierszu poczynaj¹c od 1
+			// jeœli znajdziemy i jest ono w sprawdzanej kolumnie ustawiamy je
+			// jako zero - "znacz¹ce"
+
+//			System.out.println();
+//			for (int i = 0; i < matrix2.length; i++) {
+//				for (int j = 0; j < matrix2[i].length; j++) {
+//					System.out.print(matrix2[i][j] + " ");
+//				}
+//				System.out.println();
+//			}
+
+			for (int col = 0; col < btsSize; col++) {
+				boolean wpisano = false;
+				boolean end = false;
+				int minZero = 1;
+				while (!wpisano && !end) {
+
+					int row = 0;
+					for (; row < btsSize; row++) {
+						int countZeroInRow = 0;
+						for (int c = 0; c < btsSize; c++) {
+							if (matrix2[row][c] == 0)
+								countZeroInRow++;
+						}
+//						System.out.println("row " + row + " countZeroInRow "
+//								+ countZeroInRow);
+						if (minZero == countZeroInRow && matrix2[row][col] == 0) {
+							column.add(row);
+							matrix2 = coverRow(matrix2, row);
+							wpisano = true;
+							break;
+						}
+
+					}
+					minZero++;
+
+					if (row == btsSize) {
+						column.add(null);
+						end = true;
+					}
+
+				}
+			}
+
+//			int d = 0;
+//			for (Integer col : column) {
+//				if (col == null) {
+//					System.out.println(d + " null");
+//					d++;
+//				} else {
+//					System.out.println(d + " " + col);
+//					d++;
+//				}
+//			}
+//
+//			System.out.println();
+//			for (int i = 0; i < exitMatrix.length; i++) {
+//				for (int j = 0; j < exitMatrix[i].length; j++) {
+//					System.out.print(exitMatrix[i][j] + " ");
+//				}
+//				System.out.println();
+//			}
+			int col = 0;
+			for (Integer row : column) {
+				if (row != null) {
+					int dis = exitMatrix[row][col];
+					if (dis < btsList.get(row).getRange()) {
+						matrixPoint.add(new MatrixPoint(userList.get(col),
+								btsList.get(row), "located"));
+					}
+
+					else
+						matrixPoint.add(new MatrixPoint(userList.get(col),
+								null, "unlocated"));
+				} else
+					matrixPoint.add(new MatrixPoint(userList.get(col), null,
+							"unlocated"));
+
+				col++;
+			}
+
+			for (User b : userList) {
+				boolean wstawiono = false;
+				for (MatrixPoint m : matrixPoint) {
+					if (m.getUser().getId().equals(b.getId())) {
+						path.put(b, m.getBts());
+						wstawiono = true;
+						// System.out.println("user: "+b.getId()+" bts: "+
+						// m.getBts());
+						//System.out.println("user: " + b.getId());
+						break;
+					}
+				}
+				if (!wstawiono) {
+					path.put(b, null);
+					//System.out.println("user: " + b.getId() + " bts: null");
+				}
+
+			}
+
+		}
 
 		/*
 		 * przyk³ad int max = 19;
@@ -86,179 +445,6 @@ public class Hungarian extends Pharser {
 		 * = 19;
 		 */
 
-		// zapelniamy reszte macierzy maxem -> mamy macierz kwadratow¹
-		switch (tryb) {
-		case 1:
-			for (int i = 0; i < btsSize; i++)
-				for (int j = 0; j < btsSize; j++)
-					if (matrix[i][j] == -1)
-						matrix[i][j] = max;
-			System.out.println();
-			for (int i = 0; i < matrix.length; i++) {
-				for (int j = 0; j < matrix[i].length; j++) {
-					System.out.print(matrix[i][j] + " ");
-				}
-				System.out.println();
-			}
-			
-			exitMatrix = copy(matrix, new int[btsSize][btsSize]);
-
-			// pierwszy krok
-			matrix = subtractMinFromRow(matrix);
-			// drugi krok
-			matrix = subtractMinFromColumn(matrix);
-
-			for (int i = 0; i < matrix.length; i++) {
-				for (int j = 0; j < matrix[i].length; j++) {
-					System.out.print(matrix[i][j] + " ");
-				}
-				System.out.println();
-			}
-
-			int[][] m2 = new int[matrix.length][matrix.length];
-			// trzeci krok
-			m2 = copy(matrix, m2);
-			m2 = coverTheZeroes(m2);
-
-			System.out.println(wywolania);
-
-			matrix2 = copy(matrix, new int[matrix.length][matrix.length]);
-
-			while (wywolania < btsSize) {
-				// krok 4
-				m2 = addToCover(matrix2, m2);
-
-//				System.out.println("matrix2");
-//				for (int i = 0; i < matrix2.length; i++) {
-//					for (int j = 0; j < matrix2[i].length; j++) {
-//						System.out.print(matrix2[i][j] + " ");
-//					}
-//					System.out.println();
-//				}
-
-				// krok 5
-				m2 = subtractMin(m2);
-				matrix2 = copy(m2, new int[matrix.length][matrix.length]);
-	
-				// krok 3
-				m2 = coverTheZeroes(m2);
-				//System.out.println(wywolania);
-
-//				System.out.println("m2");
-//				for (int i = 0; i < m2.length; i++) {
-//					for (int j = 0; j < m2[i].length; j++) {
-//						System.out.print(m2[i][j] + " ");
-//					}
-//					System.out.println();
-//				}
-
-				// System.out.println(wywolania);
-				// wywolania++;
-			}
-			
-			// krok ostatni
-			LinkedList<Integer> column = new LinkedList<>();
-			// przechodzimy po matrix2, a dok³adnie dla ka¿dej kolumny szukamy zer,
-			// szukamy najmniejsz¹ liczbê zer w ka¿dym wierszu poczynaj¹c od 1
-			// jeœli znajdziemy i jest ono w sprawdzanej kolumnie ustawiamy je jako zero - "znacz¹ce"
-			
-			for(int col=0; col<btsSize; col++){
-				boolean wpisano = false;
-				int minZero = 1;
-				while(!wpisano){
-					for(int row=0; row<btsSize; row++){
-						int countZeroInRow = 0;
-						for(int c=0; c<btsSize; c++){
-							if(matrix2[row][c]==0) countZeroInRow++;
-						}	
-						if(minZero == countZeroInRow && matrix2[row][col] == 0){
-							column.add(row);
-							matrix2 = coverRow(matrix2, row);
-							wpisano = true;
-							break;
-						}
-						
-					}
-					minZero++;
-				}				
-			}
-			
-		
-			int col = 0;
-			for(int row: column){
-				if(col<userSize){
-					int dis = exitMatrix[row][col];
-					if(dis<btsList.get(row).getRange()) matrixPoint.add(new MatrixPoint(userList.get(col), btsList.get(row), "located"));
-					else matrixPoint.add(new MatrixPoint(userList.get(col), null, "unlocated"));
-				}
-				col++;
-			}
-			
-			for(MatrixPoint m: matrixPoint){
-				System.out.println(m.user + " " + m.bts + " " + m.located);
-			}
-
-			break;
-		// case 2:
-		// for (int i = 0; i < userSize; i++)
-		// for (int j = 0; j < userSize; j++)
-		// if (matrix[i][j] == -1)
-		// matrix[i][j] = max;
-		// System.out.println();
-		// for (int i = 0; i < matrix.length; i++) {
-		// for (int j = 0; j < matrix[i].length; j++) {
-		// System.out.print(matrix[i][j] + " ");
-		// }
-		// System.out.println();
-		// }
-		//
-		// // pierwszy krok
-		// matrix = subtractMinFromRow(matrix);
-		// // drugi krok
-		// matrix = subtractMinFromColumn(matrix);
-		//
-		// System.out.println();
-		// for (int i = 0; i < matrix.length; i++) {
-		// for (int j = 0; j < matrix[i].length; j++) {
-		// System.out.print(matrix[i][j] + " ");
-		// }
-		// System.out.println();
-		// }
-		//
-		// m2 = new int[matrix.length][matrix.length];
-		// // trzeci krok
-		// m2 = copy(matrix, m2);
-		// m2 = coverTheZeroes(m2);
-		//
-		// System.out.println(wywolania);
-		//
-		// while (wywolania == btsSize) {
-		// // krok 4
-		// // wybieram min z elementów nie wykreœlonych i dodajê do
-		// // ka¿dego elementu wykreœlonego
-		// // je¿eli jest przeciêcie to w tym miejscu dodajê go 2X
-		// m2 = addToCover(matrix, m2);
-		//
-		// // krok 5
-		// m2 = subtractMin(m2);
-		//
-		// // krok 3
-		// m2 = coverTheZeroes(m2);
-		//
-		// System.out.println(wywolania);
-		// // wywolania++;
-		// }
-		//
-		// System.out.println();
-		// for (int i = 0; i < m2.length; i++) {
-		// for (int j = 0; j < m2[i].length; j++) {
-		// System.out.print(m2[i][j] + " ");
-		// }
-		// System.out.println();
-		// }
-		// break;
-		}
-
 	}
 
 	private int[][] copy(int[][] matrix, int[][] m2) {
@@ -277,11 +463,6 @@ public class Hungarian extends Pharser {
 				else
 					matrix[i][j] = 1;
 		}
-	}
-
-	private void selectZero(int[][] matrix) {
-		clean(matrix);
-
 	}
 
 	private int[][] addToCover(int[][] m, int[][] m2) {
@@ -321,9 +502,9 @@ public class Hungarian extends Pharser {
 
 	private int[][] coverTheZeroes(int[][] matrix) {
 		wywolania = 0;
-		//boolean jest = false;
-		//int[][] m2 = new int[matrix.length][matrix.length];
-		//copy(matrix, m2);
+		// boolean jest = false;
+		// int[][] m2 = new int[matrix.length][matrix.length];
+		// copy(matrix, m2);
 		for (int k = matrix.length; k > 0; k--) {
 
 			// sprawdza ile zer jest w danej kolumnie

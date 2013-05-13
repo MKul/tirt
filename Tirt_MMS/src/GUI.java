@@ -17,7 +17,6 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
-
 public class GUI extends JFrame {
 
 	GUI(String title) {
@@ -55,7 +54,7 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 		setLayout(null);
 		readBtses = new ArrayList<>();
 		readUsers = new ArrayList<>();
-		
+
 		this.addMouseListener(this);
 
 		bts = new JTextField(
@@ -176,33 +175,27 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 		hun = new Hungarian(btses, users);
 		System.out.println("Hungarian:");
 		hun.compute();
-		//hun.solve();
-//		float[][] matrix = new float[5][5];
-//		matrix[0][0]=20; matrix[0][1]=40; matrix[0][2]=35; matrix[0][3]=25; matrix[0][4]=62;
-//		matrix[1][0]=53; matrix[1][1]=14 ; matrix[1][2]=83 ; matrix[1][3]=14 ; matrix[1][4]=13;
-//		matrix[2][0]=14 ; matrix[2][1]=6 ; matrix[2][2]=24 ; matrix[2][3]=14 ; matrix[2][4]=7;
-//		matrix[3][0]=26; matrix[3][1]=64; matrix[3][2]=25; matrix[3][3]=54; matrix[3][4]=63;
-//		matrix[4][0]=53; matrix[4][1]=15; matrix[4][2]=96; matrix[4][3]=43; matrix[4][4]=23;
+		
+		solve = hun.path;
+		
+//		for(User u:solve.keySet()){
+//			System.out.print(u.getId()+"->"+solve.get(u)+"  ");
+//		}
+		formic.printPath(solve);
+		System.out.println(formic.getTotalDistance(formic.getSolve()));
+		System.out.println("Time: " + (System.currentTimeMillis() - time)
+				+ "ms");
+		number = 2;
+		repaint();
+
+//		for (MatrixPoint m : hun.matrixPoint) {
+//			if(m.located.equals("unlocated"))
+//				System.out.print(m.user.getId() + "->~UNALLOCATED  ");
+//			else System.out.print(m.user.getId() + "->" + m.bts.getId()+"  ");
+//		}
+//		System.out.println("Time: " + (System.currentTimeMillis() - time)
+//				+ "ms");
 //		
-//
-//		for(int i=0; i<matrix.length ; i++){
-//			for(int j=0; j<matrix[i].length; j++){
-//				System.out.print(matrix[i][j]+" ");
-//			}
-//		System.out.println();
-//		}
-//		System.out.println();
-//		int t =0, d=0;
-//		int[][] temp = hun.computeAssignments(matrix);
-//		for(int i=0; i<temp.length ; i++){
-//			for(int j=0; j<temp[i].length; j+=2){
-//				t = temp[i][j];
-//				d = temp[i][j+1];
-//				System.out.print(d+" "+t);
-//			}
-//			System.out.print(matrix[t][d]);
-//		System.out.println();
-//		}
 	}
 
 	public void formicAlg() {
@@ -249,8 +242,8 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 			// Rysuje rozmieszczenie przed uruchomieniem algorytmu
 			// Na ¿ó³to zasiêg stacji, czarny kwadrat to stacja, czerwony
 			// kwadrat u¿ytkownik
-			
-			//Legenda
+
+			// Legenda
 			g.setColor(Color.black);
 			g.drawString("Key :", 10, 110);
 			g.fillRect(15, 120, 10, 10);
@@ -258,13 +251,12 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 			g.setColor(Color.red);
 			g.fillRect(15, 140, 10, 10);
 			g.drawString(" - USER", 30, 149);
-			
+
 			for (Bts i : readBtses) {
 				g.setColor(Color.yellow);
 				g.drawArc((int) (i.getX() - i.getRange()),
-						(int) (i.getY()- i.getRange()),
-						(int) i.getRange() * 2, (int) i.getRange() * 2, 0,
-						360);
+						(int) (i.getY() - i.getRange()),
+						(int) i.getRange() * 2, (int) i.getRange() * 2, 0, 360);
 				g.setColor(Color.black);
 				g.fillRect((int) (i.getX() - 0.5 * width),
 						(int) (i.getY() - 0.5 * high), width, high);
@@ -277,8 +269,8 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 			}
 			break;
 		case 2:
-			
-			//Legenda
+
+			// Legenda
 			g.setColor(Color.black);
 			g.drawString("Key :", 10, 110);
 			g.setColor(Color.blue);
@@ -289,7 +281,7 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 			g.setColor(Color.white);
 			g.fillRect(15, 160, 10, 10);
 			g.drawString(" - UNALLOCATED USER", 30, 169);
-			
+
 			List<User> t[] = new List[readBtses.size()];
 			for (int i = 0; i < t.length; i++)
 				t[i] = new LinkedList<User>();
@@ -333,19 +325,20 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 			for (List<User> j : t) {
 				g.setColor(col[colNr]);
 				// rysuje zasiêg
-				g.drawArc((int) (readBtses.get(bt).getX() - readBtses
-						.get(bt).getRange()), (int) (readBtses.get(bt)
-						.getY() - readBtses.get(bt).getRange()),
-						(int) readBtses.get(bt).getRange() * 2,
-						(int) readBtses.get(bt).getRange() * 2, 0, 360);
+				g.drawArc((int) (readBtses.get(bt).getX() - readBtses.get(bt)
+						.getRange()),
+						(int) (readBtses.get(bt).getY() - readBtses.get(bt)
+								.getRange()), (int) readBtses.get(bt)
+								.getRange() * 2, (int) readBtses.get(bt)
+								.getRange() * 2, 0, 360);
 				// rysuje Btsa
 				g.fillArc((int) (readBtses.get(bt).getX() - 0.5 * width),
-						(int) (readBtses.get(bt).getY() - 0.5 * high),
-						width, high, 0, 360);
+						(int) (readBtses.get(bt).getY() - 0.5 * high), width,
+						high, 0, 360);
 				g.drawString(
 						readBtses.get(bt).getId(),
-						(int) (readBtses.get(bt).getX() - 0.5 * readBtses
-								.get(bt).getRange()),
+						(int) (readBtses.get(bt).getX() - 0.5 * readBtses.get(
+								bt).getRange()),
 						(int) (readBtses.get(bt).getY() - 0.5 * readBtses.get(
 								bt).getRange()));
 				bt++;
@@ -353,13 +346,28 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 				for (User u : j) {
 					g.fillRect((int) (u.getX() - 0.5 * width),
 							(int) (u.getY() - 0.5 * high), width, high);
-					g.drawString(u.getId(),
-							(int) (u.getX() - 0.5 * width),
+					g.drawString(u.getId(), (int) (u.getX() - 0.5 * width),
 							(int) (u.getY() - 0.5 * high));
 				}
 
 				colNr++;
 			}
+			break;
+			
+		case 3:
+			
+			// Legenda
+						g.setColor(Color.black);
+						g.drawString("Key :", 10, 110);
+						g.setColor(Color.blue);
+						g.fillArc(15, 120, 10, 10, 0, 360);
+						g.drawString(" - COLORED BTS", 30, 129);
+						g.fillRect(15, 140, 10, 10);
+						g.drawString(" - COLORED USER ASSIGNED TO BTS", 30, 149);
+						g.setColor(Color.white);
+						g.fillRect(15, 160, 10, 10);
+						g.drawString(" - UNALLOCATED USER", 30, 169);
+						
 			break;
 
 		}
@@ -368,31 +376,31 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		System.out.println(e.getX() + " " + e.getY());
-		
+
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }
