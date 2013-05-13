@@ -1,26 +1,39 @@
 
 public class MatrixPoint {
 
-	int i, j;
+	Bts bts;
+	User user;
+	String located;
 	
-	MatrixPoint(int i, int j){
-		this.i = i;
-		this.j = j;
+	MatrixPoint(User user, Bts bts, String located){
+		this.user = user;
+		this.bts = bts;
+		this.located = located;
 	}
 
-	public int getI() {
-		return i;
+	public Bts getBts() {
+		return bts;
 	}
 
-	public void setI(int i) {
-		this.i = i;
+	public void setBts(Bts bts) {
+		this.bts = bts;
 	}
 
-	public int getJ() {
-		return j;
+	public User getUser() {
+		return user;
 	}
 
-	public void setJ(int j) {
-		this.j = j;
+	public void setUser(User user) {
+		this.user = user;
 	}
+
+	public String getLocated() {
+		return located;
+	}
+
+	public void setLocated(String located) {
+		this.located = located;
+	}
+
+	
 }
