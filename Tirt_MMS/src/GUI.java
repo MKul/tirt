@@ -58,9 +58,9 @@ class Panel extends JPanel implements ActionListener, MouseListener {
 		this.addMouseListener(this);
 
 		bts = new JTextField(
-				"C:\\Users\\oem\\workspace_juno\\Tirt_MMS\\btses6.txt");
+				"C:\\Users\\sonia\\Downloads\\workspace_juno\\Tirt_MMS\\btses2.txt");
 		user = new JTextField(
-				"C:\\Users\\oem\\workspace_juno\\Tirt_MMS\\users6.txt");
+				"C:\\Users\\sonia\\Downloads\\workspace_juno\\Tirt_MMS\\users2.txt");
 
 		bts.setBounds(10, 10, 290, 30);
 		user.setBounds(10, 60, 290, 30);

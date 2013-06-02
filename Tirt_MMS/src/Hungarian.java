@@ -15,6 +15,10 @@ public class Hungarian extends Pharser {
 	ArrayList<Bts> btsList = new ArrayList<Bts>();
 	ArrayList<User> userList = new ArrayList<User>();
 	ArrayList<MatrixPoint> matrixPoint = new ArrayList<MatrixPoint>();
+
+	ArrayList<Integer> bts = new ArrayList<Integer>();
+	ArrayList<Integer> btsPerformance = new ArrayList<Integer>();
+
 	TreeMap<User, Bts> path = new TreeMap<>();
 	int userSize = 0, btsSize = 0;
 
@@ -27,40 +31,61 @@ public class Hungarian extends Pharser {
 	}
 
 	public void compute() {
+		int sizeBts = 0;
+		int sum = 0;
+		for (Bts b : btsList) {
+			sizeBts = (int) b.getPerformance();
+			btsPerformance.add(sizeBts);
+			bts.add(sizeBts);
+			sum += sizeBts;
+		}
+		
+//		System.out.println("btsPerformance");
+//		for (int i = 0; i < btsPerformance.size(); i++) {
+//			System.out.println("bts"+(i+1)+" "+btsPerformance.get(i));
+//		}
+
 		int[][] matrix = null;
 		int[][] matrix2 = null;
 		int[][] exitMatrix = null;
 
-		if (btsSize > userSize) {
-			matrix = new int[btsSize][btsSize];
-			matrix2 = new int[btsSize][btsSize];
-			exitMatrix = new int[btsSize][btsSize];
+		if (sum > userSize) {
+			matrix = new int[sum][sum];
+			matrix2 = new int[sum][sum];
+			exitMatrix = new int[sum][sum];
 
 			// zapelniamy macierz wartoœci¹ -1 - wtedy jesli zostan¹ jakieœ
 			// wart. to bêdziemy mogli je wszystkie zamieniæ na najwiêksz¹ wart.
 			// macierzy
-			for (int i = 0; i < btsSize; i++)
-				for (int j = 0; j < btsSize; j++)
+			for (int i = 0; i < sum; i++)
+				for (int j = 0; j < sum; j++)
 					matrix[i][j] = -1;
 
 			int max = 0;
 			// zape³niami macierz odlegloœciami btsów od userów
-			for (int i = 0; i < btsSize; i++)
-				for (int j = 0; j < userSize; j++) {
-					int distance = (int) countDistance(btsList.get(i),
-							userList.get(j));
-					matrix[i][j] = distance;
-					if (distance > max)
-						max = distance;
+			int p = 0;
+			int ilosc = 0;
+			for (int i = 0; i < bts.size(); i++) {
+				ilosc = bts.get(i);
+				for (int j = 0; j < ilosc; j++) {
+					for (int l = 0; l < userList.size(); l++) {
+						int distance = (int) countDistance(btsList.get(i),
+								userList.get(l));
+						matrix[j + p][l] = distance;
+						if (distance > max)
+							max = distance;
+					}
 				}
+				p += ilosc;
+			}
 
 			// zapelniamy reszte macierzy maxem -> mamy macierz kwadratow¹
-			for (int i = 0; i < btsSize; i++)
-				for (int j = 0; j < btsSize; j++)
+			for (int i = 0; i < sum; i++)
+				for (int j = 0; j < sum; j++)
 					if (matrix[i][j] == -1)
 						matrix[i][j] = max;
 
-			exitMatrix = copy(matrix, new int[btsSize][btsSize]);
+			exitMatrix = copy(matrix, new int[sum][sum]);
 
 			// pierwszy krok
 			matrix = subtractMinFromRow(matrix);
@@ -76,7 +101,7 @@ public class Hungarian extends Pharser {
 
 			matrix2 = copy(matrix, new int[matrix.length][matrix.length]);
 
-			while (wywolania < btsSize) {
+			while (wywolania < sum) {
 				// krok 4
 				m2 = addToCover(matrix2, m2);
 
@@ -88,6 +113,14 @@ public class Hungarian extends Pharser {
 				m2 = coverTheZeroes(m2);
 			}
 
+//			System.out.println("exitMatrix");
+//			for (int i = 0; i < exitMatrix.length; i++) {
+//				for (int j = 0; j < exitMatrix[i].length; j++) {
+//					System.out.print(exitMatrix[i][j] + " ");
+//				}
+//				System.out.println();
+//			}
+
 			// krok ostatni
 			LinkedList<Integer> column = new LinkedList<>();
 			// przechodzimy po matrix2, a dok³adnie dla ka¿dej kolumny szukamy
@@ -96,18 +129,20 @@ public class Hungarian extends Pharser {
 			// jeœli znajdziemy i jest ono w sprawdzanej kolumnie ustawiamy je
 			// jako zero - "znacz¹ce"
 
-			for (int col = 0; col < btsSize; col++) {
+			for (int col = 0; col < sum; col++) {
 				boolean wpisano = false;
 				int minZero = 1;
-				while (!wpisano) {
-					for (int row = 0; row < btsSize; row++) {
+				while (!wpisano && minZero <= sum) {
+					//System.out.println("minZero" + minZero + " sum" + sum);
+					for (int row = 0; row < sum; row++) {
 						int countZeroInRow = 0;
-						for (int c = 0; c < btsSize; c++) {
+						for (int c = 0; c < sum; c++) {
 							if (matrix2[row][c] == 0)
 								countZeroInRow++;
 						}
 						if (minZero == countZeroInRow && matrix2[row][col] == 0) {
 							column.add(row);
+						 //System.out.println(col + " " + row);
 							matrix2 = coverRow(matrix2, row);
 							wpisano = true;
 							break;
@@ -118,13 +153,23 @@ public class Hungarian extends Pharser {
 				}
 			}
 
+			// wypisanie i sprawdzanie czy user znajduje siê w zasiêgu btsa
 			int col = 0;
 			for (int row : column) {
 				if (col < userSize) {
 					int dis = exitMatrix[row][col];
-					if (dis < btsList.get(row).getRange()) {
-						matrixPoint.add(new MatrixPoint(userList.get(col),
-								btsList.get(row), "located"));
+					int index = btsIndex(row);
+					if (dis < btsList.get(index).getRange()) {
+						if(btsPerformance.get(index)==0){
+							matrixPoint.add(new MatrixPoint(userList.get(col),
+									null, "unlocated"));
+						}else{
+							matrixPoint.add(new MatrixPoint(userList.get(col),
+									btsList.get(index), "located"));
+							btsPerformance.set(index, btsPerformance.get(index)-1);
+						}
+						//System.out.println(userList.get(col).getId() + " "+ btsList.get(index)+" index: "+index+ " dis: " + dis+ " Range: "+btsList.get(index).getRange());
+						
 					}
 
 					else
@@ -133,6 +178,8 @@ public class Hungarian extends Pharser {
 				}
 				col++;
 			}
+			
+			//System.out.println(btsPerformance.get(2));
 
 			for (User b : userList) {
 				boolean wstawiono = false;
@@ -147,11 +194,11 @@ public class Hungarian extends Pharser {
 					path.put(b, null);
 			}
 
-			// for (MatrixPoint m : matrixPoint) {
-			// System.out.println(m.user + " " + m.bts + " " + m.located);
-			// }
+			for (MatrixPoint m : matrixPoint) {
+				//System.out.println(m.user + " " + m.bts + " " + m.located);
+			}
 
-		} else if (btsSize < userSize) {
+		} else if (sum < userSize) {
 			matrix = new int[userSize][userSize];
 			matrix2 = new int[userSize][userSize];
 			exitMatrix = new int[userSize][userSize];
@@ -165,14 +212,21 @@ public class Hungarian extends Pharser {
 
 			int max = 0;
 			// zape³niami macierz odlegloœciami btsów od userów
-			for (int i = 0; i < btsSize; i++)
-				for (int j = 0; j < userSize; j++) {
-					int distance = (int) countDistance(btsList.get(i),
-							userList.get(j));
-					matrix[i][j] = distance;
-					if (distance > max)
-						max = distance;
+			int p = 0;
+			int ilosc = 0;
+			for (int i = 0; i < bts.size(); i++) {
+				ilosc = bts.get(i);
+				for (int j = 0; j < ilosc; j++) {
+					for (int l = 0; l < userList.size(); l++) {
+						int distance = (int) countDistance(btsList.get(i),
+								userList.get(l));
+						matrix[j + p][l] = distance;
+						if (distance > max)
+							max = distance;
+					}
 				}
+				p += ilosc;
+			}
 
 			// zapelniamy reszte macierzy maxem -> mamy macierz kwadratow¹
 			for (int i = 0; i < userSize; i++)
@@ -217,7 +271,7 @@ public class Hungarian extends Pharser {
 			for (int col = 0; col < userSize; col++) {
 				boolean wpisano = false;
 				int minZero = 1;
-				while (!wpisano) {
+				while (!wpisano && minZero <= sum) {
 					for (int row = 0; row < userSize; row++) {
 						int countZeroInRow = 0;
 						for (int c = 0; c < userSize; c++) {
@@ -241,9 +295,17 @@ public class Hungarian extends Pharser {
 			for (int row : column) {
 				if (row < btsSize) {
 					int dis = exitMatrix[row][col];
-					if (dis < btsList.get(row).getRange()) {
-						matrixPoint.add(new MatrixPoint(userList.get(col),
-								btsList.get(row), "located"));
+					int index = btsIndex(row);
+					if (dis < btsList.get(index).getRange()) {
+						if(btsPerformance.get(index)==0){
+							matrixPoint.add(new MatrixPoint(userList.get(col),
+									null, "unlocated"));
+							
+						}else{
+							matrixPoint.add(new MatrixPoint(userList.get(col),
+									btsList.get(index), "located"));
+							btsPerformance.set(index, btsPerformance.get(index)-1);
+						}
 					}
 
 					else
@@ -279,20 +341,27 @@ public class Hungarian extends Pharser {
 			// System.out.print(u.getId()+"->"+path.get(u)+"  ");
 			// }
 
-		} else if (btsSize == userSize) {
-			matrix = new int[btsSize][btsSize];
-			matrix2 = new int[btsSize][btsSize];
-			exitMatrix = new int[btsSize][btsSize];
+		} else if (sum == userSize) {
+			matrix = new int[sum][sum];
+			matrix2 = new int[sum][sum];
+			exitMatrix = new int[sum][sum];
 
 			// zape³niami macierz odlegloœciami btsów od userów
-			for (int i = 0; i < btsSize; i++)
-				for (int j = 0; j < userSize; j++) {
-					int distance = (int) countDistance(btsList.get(i),
-							userList.get(j));
-					matrix[i][j] = distance;
+			int p = 0;
+			int ilosc = 0;
+			for (int i = 0; i < bts.size(); i++) {
+				ilosc = bts.get(i);
+				for (int j = 0; j < ilosc; j++) {
+					for (int l = 0; l < userList.size(); l++) {
+						int distance = (int) countDistance(btsList.get(i),
+								userList.get(l));
+						matrix[j + p][l] = distance;
+					}
 				}
-
-			exitMatrix = copy(matrix, new int[btsSize][btsSize]);
+				p += ilosc;
+			}
+			
+			exitMatrix = copy(matrix, new int[sum][sum]);
 
 			// pierwszy krok
 			matrix = subtractMinFromRow(matrix);
@@ -306,7 +375,7 @@ public class Hungarian extends Pharser {
 
 			matrix2 = copy(matrix, new int[matrix.length][matrix.length]);
 
-			while (wywolania < btsSize) {
+			while (wywolania < sum) {
 				// krok 4
 				m2 = addToCover(matrix2, m2);
 
@@ -327,29 +396,29 @@ public class Hungarian extends Pharser {
 			// jeœli znajdziemy i jest ono w sprawdzanej kolumnie ustawiamy je
 			// jako zero - "znacz¹ce"
 
-//			System.out.println();
-//			for (int i = 0; i < matrix2.length; i++) {
-//				for (int j = 0; j < matrix2[i].length; j++) {
-//					System.out.print(matrix2[i][j] + " ");
-//				}
-//				System.out.println();
-//			}
+			// System.out.println();
+			// for (int i = 0; i < matrix2.length; i++) {
+			// for (int j = 0; j < matrix2[i].length; j++) {
+			// System.out.print(matrix2[i][j] + " ");
+			// }
+			// System.out.println();
+			// }
 
-			for (int col = 0; col < btsSize; col++) {
+			for (int col = 0; col < sum; col++) {
 				boolean wpisano = false;
 				boolean end = false;
 				int minZero = 1;
 				while (!wpisano && !end) {
 
 					int row = 0;
-					for (; row < btsSize; row++) {
+					for (; row < sum; row++) {
 						int countZeroInRow = 0;
-						for (int c = 0; c < btsSize; c++) {
+						for (int c = 0; c < sum; c++) {
 							if (matrix2[row][c] == 0)
 								countZeroInRow++;
 						}
-//						System.out.println("row " + row + " countZeroInRow "
-//								+ countZeroInRow);
+						// System.out.println("row " + row + " countZeroInRow "
+						// + countZeroInRow);
 						if (minZero == countZeroInRow && matrix2[row][col] == 0) {
 							column.add(row);
 							matrix2 = coverRow(matrix2, row);
@@ -360,7 +429,7 @@ public class Hungarian extends Pharser {
 					}
 					minZero++;
 
-					if (row == btsSize) {
+					if (row == sum) {
 						column.add(null);
 						end = true;
 					}
@@ -368,31 +437,39 @@ public class Hungarian extends Pharser {
 				}
 			}
 
-//			int d = 0;
-//			for (Integer col : column) {
-//				if (col == null) {
-//					System.out.println(d + " null");
-//					d++;
-//				} else {
-//					System.out.println(d + " " + col);
-//					d++;
-//				}
-//			}
-//
-//			System.out.println();
-//			for (int i = 0; i < exitMatrix.length; i++) {
-//				for (int j = 0; j < exitMatrix[i].length; j++) {
-//					System.out.print(exitMatrix[i][j] + " ");
-//				}
-//				System.out.println();
-//			}
+			// int d = 0;
+			// for (Integer col : column) {
+			// if (col == null) {
+			// System.out.println(d + " null");
+			// d++;
+			// } else {
+			// System.out.println(d + " " + col);
+			// d++;
+			// }
+			// }
+			//
+			// System.out.println();
+			// for (int i = 0; i < exitMatrix.length; i++) {
+			// for (int j = 0; j < exitMatrix[i].length; j++) {
+			// System.out.print(exitMatrix[i][j] + " ");
+			// }
+			// System.out.println();
+			// }
 			int col = 0;
 			for (Integer row : column) {
 				if (row != null) {
 					int dis = exitMatrix[row][col];
-					if (dis < btsList.get(row).getRange()) {
-						matrixPoint.add(new MatrixPoint(userList.get(col),
-								btsList.get(row), "located"));
+					int index = btsIndex(row);
+					if (dis < btsList.get(index).getRange()) {
+						if(btsPerformance.get(index)==0){
+							matrixPoint.add(new MatrixPoint(userList.get(col),
+									null, "unlocated"));
+							
+						}else{
+							matrixPoint.add(new MatrixPoint(userList.get(col),
+									btsList.get(index), "located"));
+							btsPerformance.set(index, btsPerformance.get(index)-1);
+						}
 					}
 
 					else
@@ -413,13 +490,13 @@ public class Hungarian extends Pharser {
 						wstawiono = true;
 						// System.out.println("user: "+b.getId()+" bts: "+
 						// m.getBts());
-						//System.out.println("user: " + b.getId());
+						// System.out.println("user: " + b.getId());
 						break;
 					}
 				}
 				if (!wstawiono) {
 					path.put(b, null);
-					//System.out.println("user: " + b.getId() + " bts: null");
+					// System.out.println("user: " + b.getId() + " bts: null");
 				}
 
 			}
@@ -444,6 +521,20 @@ public class Hungarian extends Pharser {
 		 * matrix[4][0] = 14; matrix[4][1] = 17; matrix[4][2] = 10; matrix[4][3]
 		 * = 19;
 		 */
+
+	}
+
+	private int btsIndex(int row) {
+		int index = 0, number = 0;
+		for (int b : bts) {
+			if (b + number - 1 >= row)
+				return index;
+			else
+				number += b;
+
+			index++;
+		}
+		return -1;
 
 	}
 
