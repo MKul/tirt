@@ -1,0 +1,10 @@
+// o programie
+// definicje alg
+// badania
+	- kilka konfiguracji stacji - ró¿ni¹cych siê od siebie, aby pokazywa³y ró¿ne mo¿liwoœci np. du¿e pokrycie, ma³e, 40%-60% pokrycie
+	- dla ka¿dej konfiguracji ró¿ne rozk³ady u¿ytkowników
+	=> sprawdziæ jak alg. siê zachowuje: w stosunku do innych, czasy przyporz¹dkowania 
+	- wydajnoœæ ok. 100 userów 
+	
+	
+	do 6 czerwca
